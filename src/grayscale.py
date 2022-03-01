@@ -2,7 +2,6 @@ import numpy as np
 import zipfile
 import os
 from PIL import Image
-from pytest import fail
 def getdex(filename):
     apkfile = zipfile.ZipFile(filename,'r')
     dex = ""
