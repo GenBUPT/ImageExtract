@@ -1,7 +1,12 @@
+
 import random
 from PIL import Image
-import numpy as np 
+from matplotlib.cbook import flatten
+import numpy as np
+#from sklearn.mixture import BayesianGaussianMixture 
 from grayscale import getwidth
+import os
+import unittest
 def getfilelist():
     """
         获得要合成的图
@@ -19,16 +24,22 @@ def mergeImg(imglist):
         for raw in img:
             for pixiv in raw:
                 imgarray.append(pixiv)
-        imgarray.append([251,252,253])
+        imgarray.append(np.uint8([251,252,253]))
     return imgarray
 def splitImg(bigImg):
     """
-    输入大图，随机切出一个小图
+    输入大图，随机切出一个小图,返回小图以及其在图片中的顺序
     """
-    ind = [index for (index,value) in enumerate(bigImg) if value[0]==251 and value[1]==252 and value[2]==253]
-    imgpos = random.randint(1,len(ind))
-    ind.insert(0,-1)
-    return bigImg[ind[imgpos-1]+1:ind[imgpos]]
+    ind = [-1]
+   
+    for i in range(0,len(bigImg)):
+        if bigImg[i][0]==251 and bigImg[i][1]==252 and bigImg[i][2]==253:
+          
+            ind.append(i)
+   
+    imgpos = random.randint(1,len(ind)-1)
+    
+    return bigImg[ind[imgpos-1]+1:ind[imgpos]],imgpos
 def saveImg(img,filename):
     """
     输入一个RGB格式的图片数组，保存为灰度图
@@ -50,11 +61,50 @@ def saveImg(img,filename):
     newimg = Image.fromarray(np.uint8(newimg))
     newimg.convert('L')
     newimg.save(filename)
+    return long,width
 
-if __name__ == "__main__":
-    filelist = ['test1.png','test2.png','test3.png']
-    bigImage = mergeImg(filelist)
-    saveImg(splitImg(bigImage),"test.png")
+class TestMerge(unittest.TestCase):
+
+    def test_init(self):
+        
+        imgpath = "/home/gxj/binarys/deximg/"
+     
+        filelist = []
+        for file in os.listdir(imgpath)[10:60]:
+            filelist.append(os.path.join(imgpath,file))
+        imgs = []
+        for file in filelist:
+            imgs.append(np.array(Image.open(file).convert("RGB")))
+        bigimg = mergeImg(filelist)
+        print("图片总数"+str(len(imgs)))
+        width = getwidth(len(bigimg))
+        if len(bigimg)%width!=0:
+            
+            for _ in range(0,(width-len(bigimg)%width)):
+                c = np.uint8([0,0,0])
+                
+                bigimg.append(c)
+        bigimg = [bigimg[i:i+width] for i in range(0,len(bigimg),width)]
+      
+        bigimg = np.array(bigimg)
+        
+        newimg = Image.fromarray(bigimg,"RGB")
+        newimg.save("big.png")
+        newimg = np.array(Image.open("big.png").convert("RGB"))
+        bigimg = []
+        for row in newimg:
+            for p in row:
+                bigimg.append(p)
+        for _ in range(10):
+            img,npos = splitImg(bigimg)  
+            imgp = []
+            for row in imgs[npos-1]:
+                for p in row:
+                    imgp.append(p)
+            for i in range(len(img)):
+                self.assertTrue((img[i]==imgp[i]).all())
+if __name__ =="__main__":
+    unittest.main()
     
 
     
