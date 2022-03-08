@@ -1,3 +1,7 @@
 deximg
 .vscode
 
+*.png
+
+malware
+benign
