@@ -19,6 +19,7 @@ def mergeImg(imglist):
     """
     imgarray = []
     for file in imglist:
+        #print("start load file "+file)
         img = np.array(Image.open(file).convert("RGB"))
         
         for raw in img:

@@ -43,8 +43,9 @@ def generator_img(filename,dex):
     imgs = np.array(list(imgs)).reshape(long,width)
     imgs = Image.fromarray(np.uint8(imgs))
     imgs.convert("L")
-    filename = filename.split('/')[-1]
-    imgs.save("deximg/"+filename+".png")
+    filename = filename.split('/')
+    filename = filename[-2]+"/"+filename[-1]
+    imgs.save(filename+".png")
 def getfiles(filepath):
     filelists = []
     for path,dirlist, filelist in os.walk(filepath):
@@ -63,23 +64,30 @@ def generatorGrayscale(filepath,outputpath):
     failed = []
     whole = len(filelist)
     for file in filelist:
+        print(file)
         try:
             dex = getdex(file)
             generator_img(file,dex)
             success+=1
-        except :
+            print("success {}".format(file))
+        except Exception as e:
+            print(e)
             failed.append(file)
-    f = open(filepath+"_log.txt","a")
+    f = open("_log.txt","a")
     f.write("success :"+str(success))
     f.write("total : "+str(whole))
     f.close()
     if len(failed)!=0:
-        f = open(filepath+"_failed.txt","w")
+        f = open("_failed.txt","w")
         f.write(str(failed))
         f.close()
 if __name__ == '__main__':
-    filepath = "/home/public/rmt/malware/benign_1000"
     outputpath = "./deximg"
-    generatorGrayscale(filepath,outputpath)
+    dirpath = "/home/public/rmt/malware/Simclr/"
+    for dir in os.listdir(dirpath):
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+        print("start to process {}".format(dir))
+        generatorGrayscale(dirpath+dir,dir)
     
     
